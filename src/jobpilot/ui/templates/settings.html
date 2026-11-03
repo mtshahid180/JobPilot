@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% from "components.html" import icon %}
+{% block content %}
+
+<div class="page-head">
+  <div class="page-head__text">
+    <span class="eyebrow">System</span>
+    <h1>Settings and system status</h1>
+    <p>Read-only runtime configuration, MCP servers, tool permissions and source health. Secrets are never rendered here.</p>
+  </div>
+  <div class="page-head__actions">
+    <button class="btn btn--secondary" type="button" id="health-refresh">{{ icon('refresh', 16) }} Check health</button>
+    <a class="btn btn--primary" href="{{ url_for('agent_page') }}">{{ icon('terminal', 16) }} Try a run</a>
+  </div>
+</div>
+
+<section class="stats-grid" aria-label="Runtime summary">
+  {% from "components.html" import stat_card %}
+  {{ stat_card('set-stat-mode', ('LLM' if llm_enabled else 'Local'), 'Agent mode', 'Keys configured' if llm_enabled else 'Zero-key, deterministic', 'zap', 'accent') }}
+  {{ stat_card('set-stat-budget', ('$%.2f' | format(budget.spent_total)), ('$%.2f limit' | format(budget.max_total)), 'Spend tracked per run', 'chart', 'green') }}
+  {{ stat_card('set-stat-steps', app_settings.max_steps, 'Max steps per run', 'Hard guardrail', 'shield', 'cyan') }}
+  {{ stat_card('set-stat-tools', tools | length, 'Registered tools', 'Across MCP servers', 'server', 'amber') }}
+</section>
+
+<div class="settings-grid">
+  <section class="card settings-card">
+    <div class="panel-head">
+      <div class="panel-head__title">
+        <h2>Runtime configuration</h2>
+        <p>Environment-driven, no secrets exposed.</p>
+      </div>
+      <span class="badge badge--neutral">{{ app_settings.environment }}</span>
+    </div>
+    <div class="settings-list">
+      <div class="settings-row"><span class="settings-row__key">Agent mode</span><span class="settings-row__value">{{ 'LLM gateway + local fallback' if llm_enabled else 'Local deterministic planner' }}</span></div>
+      <div class="settings-row"><span class="settings-row__key">Fast model</span><span class="settings-row__value settings-row__value--mono">{{ app_settings.fast_model }}</span></div>
+      <div class="settings-row"><span class="settings-row__key">Strong model</span><span class="settings-row__value settings-row__value--mono">{{ app_settings.strong_model }}</span></div>
+      <div class="settings-row"><span class="settings-row__key">Embeddings</span><span class="settings-row__value">{% if app_settings.embedding_provider == 'local' %}Local hashing (384-dim){% else %}{{ app_settings.embedding_provider }}{% endif %}</span></div>
+      <div class="settings-row"><span class="settings-row__key">Budget</span><span class="settings-row__value">${{ '%.2f' | format(app_settings.max_budget_usd) }} total · ${{ '%.2f' | format(app_settings.daily_budget_usd) }} daily</span></div>
+      <div class="settings-row"><span class="settings-row__key">Context budget</span><span class="settings-row__value">{{ app_settings.context_token_budget }} tokens</span></div>
+      <div class="settings-row"><span class="settings-row__key">Adzuna key</span><span class="settings-row__value">{{ 'configured' if app_settings.adzuna_enabled else 'not set' }}</span></div>
+      <div class="settings-row"><span class="settings-row__key">Greenhouse</span><span class="settings-row__value">{{ app_settings.greenhouse_boards | join(', ') if app_settings.greenhouse_enabled and app_settings.greenhouse_boards else 'disabled' }}</span></div>
+      <div class="settings-row"><span class="settings-row__key">Workable</span><span class="settings-row__value">{{ app_settings.workable_accounts | join(', ') if app_settings.workable_enabled and app_settings.workable_accounts else 'disabled' }}</span></div>
+      <div class="settings-row"><span class="settings-row__key">Indeed</span><span class="settings-row__value">disabled (no public API)</span></div>
+      <div class="settings-row"><span class="settings-row__key">RSS sources</span><span class="settings-row__value">{{ 'enabled' if app_settings.rss_enabled else 'disabled' }}</span></div>
+      <div class="settings-row"><span class="settings-row__key">LinkedIn</span><span class="settings-row__value">disabled — no public jobs API; paste a job URL into Import a job</span></div>
+      <div class="settings-row"><span class="settings-row__key">Database</span><span class="settings-row__value settings-row__value--mono">{{ app_settings.db_path }}</span></div>
+      <div class="settings-row"><span class="settings-row__key">Trace directory</span><span class="settings-row__value settings-row__value--mono">{{ app_settings.trace_dir }}</span></div>
+    </div>
+  </section>
+
+  <section class="card settings-card">
+    <div class="panel-head">
+      <div class="panel-head__title">
+        <h2>Health &amp; budget</h2>
+        <p>Live values from the running server.</p>
+      </div>
+      <span class="status-dot status-dot--live"></span>
+    </div>
+    <div class="settings-list" id="health-rows">
+      <div class="settings-row"><span class="settings-row__key">Status</span><span class="settings-row__value">Checking…</span></div>
+    </div>
+  </section>
+
+  <section class="card settings-card settings-card--wide">
+    <div class="panel-head">
+      <div class="panel-head__title">
+        <h2>Tool permissions</h2>
+        <p>{{ tools | length }} tools exposed over MCP. Higher tiers require explicit consent.</p>
+      </div>
+      <div class="chip-list">
+        <span class="tool-tier tool-tier--read">read</span>
+        <span class="tool-tier tool-tier--write_local">write_local</span>
+        <span class="tool-tier tool-tier--confirmation">confirmation</span>
+        <span class="tool-tier tool-tier--external">external</span>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Tool</th><th>Namespace</th><th>Tier</th><th>Description</th></tr></thead>
+        <tbody>
+          {% for tool in tools %}
+          <tr>
+            <td><span class="mono">{{ tool.name }}</span></td>
+            <td class="mono">{{ tool.namespace }}</td>
+            <td><span class="tool-tier tool-tier--{{ tool.tier }}">{{ tool.tier }}</span></td>
+            <td class="muted">{{ tool.description }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card settings-card">
+    <div class="panel-head">
+      <div class="panel-head__title">
+        <h2>MCP servers</h2>
+        <p>Stdio servers registered with the harness.</p>
+      </div>
+      <span class="badge badge--accent">{{ servers | length }} servers</span>
+    </div>
+    <div class="settings-list">
+      {% for name, module, tools_list in servers %}
+      <div class="source-row">
+        <span class="stat-card__icon" style="width:30px;height:30px">{{ icon('server', 15) }}</span>
+        <div class="source-row__main">
+          <strong>{{ name }}</strong>
+          <small class="mono">{{ module }} · {{ tools_list }}</small>
+        </div>
+        <span class="badge badge--success">ready</span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card settings-card" id="account">
+    <div class="panel-head">
+      <div class="panel-head__title">
+        <h2>Account &amp; security</h2>
+        <p>Your workspace, your password.</p>
+      </div>
+      <span class="badge badge--accent">{{ current_user.email }}</span>
+    </div>
+    <div class="settings-list">
+      <div class="settings-row"><span class="settings-row__key">Name</span><span class="settings-row__value">{{ current_user.name or current_user.display_name }}</span></div>
+      <div class="settings-row"><span class="settings-row__key">Member since</span><span class="settings-row__value">{{ current_user.created_at | nice_date }}</span></div>
+      <div class="settings-row"><span class="settings-row__key">Last sign-in</span><span class="settings-row__value">{{ current_user.last_login_at | time_ago if current_user.last_login_at else 'this session' }}</span></div>
+      <div class="settings-row"><span class="settings-row__key">Data scope</span><span class="settings-row__value">Private to {{ current_user.email }}</span></div>
+    </div>
+
+    <div class="panel-body">
+      {% if request.args.get('password') == 'updated' %}
+      <div class="alert alert--success" role="status">{{ icon('check', 16) }}<span>Password updated. Use it next time you sign in.</span></div>
+      {% endif %}
+      {% if request.args.get('password_error') %}
+      <div class="alert alert--danger" role="alert">{{ icon('alert', 16) }}<span>{{ request.args.get('password_error') }}</span></div>
+      {% endif %}
+
+      <form class="settings-form" method="post" action="{{ url_for('account_password') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="form-grid form-grid--tight">
+          <div class="field">
+            <label for="current-password">Current password</label>
+            <input class="input" id="current-password" name="current_password" type="password" autocomplete="current-password" required>
+          </div>
+          <div class="field">
+            <label for="new-password">New password</label>
+            <input class="input" id="new-password" name="new_password" type="password" autocomplete="new-password" minlength="8" required>
+            <span class="field-hint">At least 8 characters.</span>
+          </div>
+        </div>
+        <div class="setup-actions">
+          <span class="field-hint">Changing your password keeps all existing data.</span>
+          <button class="btn btn--secondary" type="submit">{{ icon('lock', 15) }} Update password</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="card settings-card" id="sources">
+    <div class="panel-head">
+      <div class="panel-head__title">
+        <h2>Job sources</h2>
+        <p>Probed on demand; failures fall through to the next tier.</p>
+      </div>
+      <button class="btn btn--secondary btn--xs" type="button" id="sources-check">{{ icon('refresh', 12) }} Probe all</button>
+    </div>
+    <div class="settings-list" id="source-rows">
+      <div class="settings-row"><span class="settings-row__key">Sources</span><span class="settings-row__value">Loading…</span></div>
+    </div>
+  </section>
+
+  <section class="card settings-card settings-card--wide">
+    <div class="panel-head">
+      <div class="panel-head__title">
+        <h2>Safety model</h2>
+        <p>What the harness enforces before any tool runs.</p>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="grid-3">
+        <div class="quality-item">
+          <span>{{ icon('shield', 15) }}</span>
+          <div><strong>Permission tiers</strong><small>Read and local-write tools run automatically. Confirmation and external tools always pause for a human decision.</small></div>
+        </div>
+        <div class="quality-item">
+          <span>{{ icon('lock', 15) }}</span>
+          <div><strong>Injection scanning</strong><small>Job descriptions are treated as untrusted data. Instruction-like text is stripped before it reaches a prompt.</small></div>
+        </div>
+        <div class="quality-item">
+          <span>{{ icon('check', 15) }}</span>
+          <div><strong>Claim verification</strong><small>Every generated bullet is checked against profile evidence. Unsupported claims are flagged, never silently shipped.</small></div>
+        </div>
+      </div>
+      <pre class="code-block mt-16"><span class="c"># CLI equivalents</span>
+<span class="k">jobpilot</span> doctor          <span class="c"># probe sources, db, budget, MCP servers</span>
+<span class="k">jobpilot</span> search "AI engineer" --remote
+<span class="k">jobpilot</span> chat            <span class="c"># terminal agent loop</span>
+<span class="k">jobpilot</span> eval            <span class="c"># offline evaluation suite</span></pre>
+    </div>
+  </section>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+{% endblock %}

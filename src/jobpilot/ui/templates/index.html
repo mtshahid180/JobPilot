@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% from "components.html" import icon, stat_card, score_ring %}
+{% block content %}
+
+<section class="hero">
+  <div class="hero__content">
+    <span class="hero__tag">{{ icon('sparkles', 13) }} MCP-powered job search</span>
+    <h1>Your job search, <em>piloted</em> by an agent that remembers you.</h1>
+    <p>
+      Search live job boards, rank every role against your real experience, tailor a verified CV,
+      and track each application - with an approval gate before any application leaves your hands.
+    </p>
+    <form class="hero__prompt" id="hero-prompt" autocomplete="off">
+      {{ icon('search', 18) }}
+      <input id="hero-input" type="text" name="q" placeholder="Try: remote Python AI engineer roles in Europe" aria-label="Ask JobPilot">
+      <button class="btn btn--primary" type="submit" id="hero-submit">{{ icon('send', 15) }} Ask</button>
+    </form>
+    <div class="pill-row mt-8">
+      <button class="suggestion" type="button" data-prompt="Find remote AI engineer jobs and rank the best matches.">Remote AI roles</button>
+      <button class="suggestion" type="button" data-prompt="Search Python backend jobs in Islamabad and score them against my profile.">Python in Islamabad</button>
+      <button class="suggestion" type="button" data-prompt="What should I improve to match senior AI engineer roles?">Skill gap review</button>
+    </div>
+  </div>
+  <div class="hero__side">
+    <div class="agent-preview">
+      <div class="agent-preview__row">{{ icon('activity', 14) }}<strong>Agent heartbeat</strong><span class="status-dot status-dot--live" style="margin-left:auto"></span></div>
+      <div class="agent-preview__line"><span class="dot"></span> Intent parsing · local planner</div>
+      <div class="agent-preview__line"><span class="dot dot--accent"></span> Matching · skills + semantic</div>
+      <div class="agent-preview__line"><span class="dot dot--cyan"></span> Verification · claim checker</div>
+      <div class="agent-preview__line"><span class="dot"></span> Approval gate · external actions</div>
+      <div class="agent-preview__foot">mode: {{ 'llm + local' if llm_enabled else 'local-only' }} · budget ${{ '%.2f' | format(budget.max_total) }}</div>
+    </div>
+  </div>
+</section>
+
+<section class="stats-grid" aria-label="Workspace summary">
+  {{ stat_card('stat-jobs', 'Jobs indexed', '—', 'Search to fill the pipeline', 'briefcase', 'accent') }}
+  {{ stat_card('stat-saved', 'Saved roles', '—', 'Bookmarked for review', 'bookmark', 'cyan') }}
+  {{ stat_card('stat-apps', 'Applications', '—', 'Across every stage', 'kanban', 'green') }}
+  {{ stat_card('stat-memory', 'Active memories', '—', 'Preferences the agent knows', 'brain', 'amber') }}
+</section>
+
+<div class="dashboard-grid">
+  <div class="dashboard-stack">
+    <section class="card">
+      <div class="panel-head">
+        <div class="panel-head__title">
+          <h2>Top matches</h2>
+          <p>Roles ranked against your profile, refreshed as you search.</p>
+        </div>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('jobs_page') }}">Open explorer {{ icon('arrow-right', 14) }}</a>
+      </div>
+      <div id="top-jobs" class="panel-body panel-body--flush">
+        <div class="list-empty">{{ icon('briefcase', 18) }} No jobs yet. Run a search to get started.</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="panel-head">
+        <div class="panel-head__title">
+          <h2>Recent agent runs</h2>
+          <p>Every tool call is traced, budgeted and replayable.</p>
+        </div>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('runs_page') }}">All runs {{ icon('arrow-right', 14) }}</a>
+      </div>
+      <div id="recent-runs" class="panel-body panel-body--flush">
+        <div class="list-empty">No runs recorded yet.</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="dashboard-stack">
+    <section class="card">
+      <div class="panel-head">
+        <div class="panel-head__title">
+          <h2>Pipeline</h2>
+          <p>Applications by stage.</p>
+        </div>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('tracker_page') }}">Tracker {{ icon('arrow-right', 14) }}</a>
+      </div>
+      <div id="pipeline" class="panel-body">
+        <div class="source-strip" style="grid-template-columns:1fr;margin:0">
+          <div class="list-empty">Nothing in the pipeline yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="panel-head">
+        <div class="panel-head__title">
+          <h2>Follow-ups</h2>
+          <p>Next seven days.</p>
+        </div>
+      </div>
+      <div id="followups" class="panel-body panel-body--flush">
+        <div class="list-empty">No follow-ups scheduled.</div>
+      </div>
+    </section>
+
+    <section class="card card--pad" id="profile-nudge">
+      <div class="row-8" style="align-items:flex-start;gap:11px">
+        <span class="stat-card__icon stat-card__icon--amber">{{ icon('user', 18) }}</span>
+        <div style="flex:1;min-width:0">
+          <h3 style="font-size:13px">Profile completeness</h3>
+          <p class="tiny muted mt-8" id="profile-nudge-text">Loading your profile…</p>
+          <div class="progress mt-12" style="margin-top:10px"><span id="profile-bar" style="width:0%"></span></div>
+        </div>
+      </div>
+      <a class="btn btn--secondary btn--sm btn--block mt-12" href="{{ url_for('profile_page') }}" id="profile-nudge-link">Complete profile</a>
+    </section>
+  </div>
+</div>
+
+<section class="source-strip" id="source-strip" aria-label="Job sources">
+  <div class="source-pill"><span class="skeleton skeleton--line" style="width:100%;margin:0"></span></div>
+  <div class="source-pill"><span class="skeleton skeleton--line" style="width:100%;margin:0"></span></div>
+  <div class="source-pill"><span class="skeleton skeleton--line" style="width:100%;margin:0"></span></div>
+  <div class="source-pill"><span class="skeleton skeleton--line" style="width:100%;margin:0"></span></div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,8 @@
+{"id": "mem-01", "content": "I prefer remote-first roles with async teams.", "kind": "preference", "query": "What is my remote work preference?", "expected": "remote-first"}
+{"id": "mem-02", "content": "I will not apply to companies that require unpaid take-home assignments longer than four hours.", "kind": "rule", "query": "What is my policy on unpaid take-home assignments?", "expected": "unpaid take-home"}
+{"id": "mem-03", "content": "I am targeting AI engineer and machine learning engineer roles.", "kind": "preference", "query": "Which roles am I targeting?", "expected": "AI engineer"}
+{"id": "mem-04", "content": "My salary floor is PKR 250,000 per month.", "kind": "preference", "query": "What is my minimum salary expectation?", "expected": "250,000"}
+{"id": "mem-05", "content": "I have two years of experience building retrieval-augmented LLM applications.", "kind": "semantic", "query": "How much experience do I have?", "expected": "two years"}
+{"id": "mem-06", "content": "I prefer hybrid roles in Islamabad.", "kind": "preference", "query": "Which work mode and city do I prefer?", "expected": "hybrid"}
+{"id": "mem-07", "content": "I never apply to gambling or tobacco companies.", "kind": "rule", "query": "Which companies do I avoid?", "expected": "gambling"}
+{"id": "mem-08", "content": "I use Python, FastAPI, PostgreSQL and Docker daily.", "kind": "semantic", "query": "Which technologies do I use?", "expected": "FastAPI"}

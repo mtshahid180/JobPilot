@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "components.html" import icon, stat_card %}
+{% block content %}
+
+<div class="page-head">
+  <div class="page-head__text">
+    <span class="eyebrow">Memory</span>
+    <h1>What the agent remembers about you</h1>
+    <p>Preferences, constraints and learned rules persist across sessions. Facts that change your profile require confirmation.</p>
+  </div>
+  <div class="page-head__actions">
+    <button class="btn btn--secondary" type="button" id="memory-refresh">{{ icon('refresh', 16) }} Refresh</button>
+    <button class="btn btn--primary" type="button" id="add-memory">{{ icon('plus', 16) }} Add memory</button>
+  </div>
+</div>
+
+<section class="stats-grid" aria-label="Memory stats">
+  {{ stat_card('mem-stat-active', 'Active', '—', 'Used during every run', 'brain', 'accent') }}
+  {{ stat_card('mem-stat-pending', 'Pending', '—', 'Waiting for confirmation', 'shield', 'amber') }}
+  {{ stat_card('mem-stat-kinds', 'Kinds', '—', 'Semantic, preference, rule', 'database', 'cyan') }}
+  {{ stat_card('mem-stat-recall', 'Recall policy', 'Top-k', 'Merged and conflict-checked', 'search', 'green') }}
+</section>
+
+<div class="tracker-toolbar">
+  <div class="tabs" role="tablist" aria-label="Memory filters">
+    <button class="tab is-active" type="button" data-kind="">All</button>
+    <button class="tab" type="button" data-kind="semantic">Semantic</button>
+    <button class="tab" type="button" data-kind="preference">Preferences</button>
+    <button class="tab" type="button" data-kind="episodic">Episodic</button>
+    <button class="tab" type="button" data-kind="rule">Rules</button>
+    <button class="tab" type="button" data-kind="pending">Pending</button>
+  </div>
+  <span class="tracker-toolbar__spacer"></span>
+  <div class="input-icon" style="width:250px">
+    {{ icon('search', 15) }}
+    <input class="input" id="memory-search" type="search" placeholder="Search memories…" aria-label="Search memories" style="height:34px">
+  </div>
+</div>
+
+<div class="memory-grid" id="memory-grid">
+  <div class="skeleton-card"><div class="skeleton skeleton--title"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div></div>
+  <div class="skeleton-card"><div class="skeleton skeleton--title"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div></div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/memory.js') }}"></script>
+{% endblock %}

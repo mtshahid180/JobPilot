@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "components.html" import icon %}
+{% block content %}
+
+<div class="page-head">
+  <div class="page-head__text">
+    <span class="eyebrow">Drafts</span>
+    <h1>Tailored documents, every claim verified</h1>
+    <p>Generated from your saved profile. Unsupported statements are flagged before you ever send them.</p>
+  </div>
+  <div class="page-head__actions">
+    <button class="btn btn--secondary" type="button" id="drafts-refresh">{{ icon('refresh', 16) }} Refresh</button>
+    <a class="btn btn--primary" href="{{ url_for('jobs_page') }}">{{ icon('wand', 16) }} Tailor from a job</a>
+  </div>
+</div>
+
+<div class="tracker-toolbar">
+  <div class="tabs" role="tablist" aria-label="Draft type">
+    <button class="tab is-active" type="button" data-tab="cvs" role="tab" aria-selected="true">Tailored CVs</button>
+    <button class="tab" type="button" data-tab="letters" role="tab" aria-selected="false">Cover letters</button>
+  </div>
+  <span class="tracker-toolbar__spacer"></span>
+  <span class="badge badge--success" id="draft-verified">{{ icon('shield', 12) }} verification on</span>
+</div>
+
+<div class="draft-grid" id="draft-grid">
+  <div class="skeleton-card"><div class="skeleton skeleton--title"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div></div>
+  <div class="skeleton-card"><div class="skeleton skeleton--title"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div></div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/drafts.js') }}"></script>
+{% endblock %}

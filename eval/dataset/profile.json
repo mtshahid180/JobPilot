@@ -1,0 +1,66 @@
+{
+  "full_name": "Ayesha Khan",
+  "headline": "AI Engineer | Python, LLMs, RAG",
+  "email": "ayesha@example.com",
+  "phone": "+92 300 0000000",
+  "location": "Islamabad, Pakistan",
+  "summary": "AI Engineer with 2 years of experience building retrieval-augmented LLM applications, Python services and data pipelines. Comfortable shipping production APIs and evaluating model quality.",
+  "skills": [
+    "Python",
+    "SQL",
+    "FastAPI",
+    "Flask",
+    "LLMs",
+    "RAG",
+    "LangChain",
+    "PyTorch",
+    "scikit-learn",
+    "pandas",
+    "Docker",
+    "Git",
+    "PostgreSQL"
+  ],
+  "experience": [
+    {
+      "title": "AI Engineer",
+      "company": "Nexus Labs",
+      "start": "2024",
+      "end": "present",
+      "location": "Islamabad, Pakistan",
+      "bullets": [
+        "Built a retrieval-augmented generation service in Python and FastAPI used by 4 internal teams.",
+        "Reduced LLM answer hallucinations by 38% with a citation-checking evaluation harness.",
+        "Designed a PostgreSQL + pgvector retrieval layer over 120,000 support documents.",
+        "Shipped containerised services with Docker and automated tests with pytest."
+      ],
+      "skills": ["Python", "FastAPI", "RAG", "PostgreSQL", "Docker", "LLMs"]
+    },
+    {
+      "title": "Machine Learning Intern",
+      "company": "DataForge",
+      "start": "2023",
+      "end": "2024",
+      "location": "Remote",
+      "bullets": [
+        "Trained and evaluated scikit-learn models for customer churn, improving F1 by 0.12.",
+        "Automated weekly data cleaning in pandas and SQL, saving 6 hours per week."
+      ],
+      "skills": ["Python", "scikit-learn", "pandas", "SQL"]
+    }
+  ],
+  "education": [
+    {
+      "degree": "BS Computer Science",
+      "institution": "FAST NUCES",
+      "year": "2023",
+      "detail": ""
+    }
+  ],
+  "links": ["https://github.com/ayesha"],
+  "target_roles": ["AI Engineer", "Machine Learning Engineer", "Python Developer"],
+  "preferred_locations": ["Islamabad", "Remote"],
+  "remote_preference": "remote",
+  "salary_floor": "PKR 250,000/month",
+  "work_authorization": "Pakistan",
+  "languages": ["English", "Urdu"]
+}

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="JobPilot — an MCP-powered job search agent with persistent memory and verified CV tailoring.">
+  <title>{{ title }} · JobPilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop stop-color='%237c6cff'/><stop offset='1' stop-color='%2322d3ee'/></linearGradient></defs><rect width='64' height='64' rx='16' fill='%230b1020'/><path d='M16 33l31-15-11 32-6-12z' fill='url(%23g)'/></svg>">
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('jobpilot-theme');
+        if (stored === 'light' || stored === 'dark') document.documentElement.dataset.theme = stored;
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body class="auth-page">
+{% from "components.html" import icon %}
+{% include "_icons.html" %}
+
+<div class="auth-shell">
+  <aside class="auth-aside">
+    <a class="auth-brand" href="{{ url_for('login') }}">
+      <span class="auth-brand__mark">
+        <svg viewBox="0 0 64 64" width="40" height="40" aria-hidden="true">
+          <defs>
+            <linearGradient id="auth-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop stop-color="#8b7cff"/><stop offset="1" stop-color="#22d3ee"/>
+            </linearGradient>
+          </defs>
+          <rect width="64" height="64" rx="17" fill="rgba(124,108,255,.12)"/>
+          <path d="M15 34 51 16 39 50l-7-13z" fill="url(#auth-grad)"/>
+          <path d="M32 37l19-21" stroke="#0a0f1c" stroke-width="2" opacity=".45"/>
+        </svg>
+      </span>
+      <span class="auth-brand__text">
+        <strong>JobPilot</strong>
+        <small>AI job-search agent</small>
+      </span>
+    </a>
+
+    <div class="auth-aside__body">
+      <span class="eyebrow">Private by design</span>
+      <h1>Your job search,<br>your own workspace.</h1>
+      <p>
+        Every account gets an isolated profile, job board, application pipeline,
+        memory and CV drafts. Nothing is shared between users.
+      </p>
+
+      <ul class="auth-points">
+        <li>{{ icon('shield', 16) }}<span><strong>Verified tailoring.</strong> Drafts only use evidence from your own profile.</span></li>
+        <li>{{ icon('database', 16) }}<span><strong>Local storage.</strong> Data stays in your own SQLite database.</span></li>
+        <li>{{ icon('briefcase', 16) }}<span><strong>Free job sources.</strong> Greenhouse, Workable and more — no API key needed.</span></li>
+      </ul>
+    </div>
+
+    <p class="auth-aside__foot">Human approval before any application is submitted.</p>
+  </aside>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      {% block auth_content %}{% endblock %}
+    </div>
+    <p class="auth-legal">JobPilot runs locally. Your password is stored as a salted hash.</p>
+  </main>
+</div>
+
+<button class="icon-btn auth-theme" id="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+  <span class="theme-icon theme-icon--dark">{{ icon('sun', 19) }}</span>
+  <span class="theme-icon theme-icon--light">{{ icon('moon', 19) }}</span>
+</button>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "components.html" import icon %}
+{% block content %}
+<div class="error-page">
+  <div class="error-page__code">404</div>
+  <h1>This page drifted off course</h1>
+  <p>The URL does not match any JobPilot route. It may have moved, or the link may be wrong.</p>
+  <div class="btn-group mt-8">
+    <a class="btn btn--primary" href="{{ url_for('dashboard') }}">{{ icon('home', 16) }} Back to dashboard</a>
+    <a class="btn btn--secondary" href="{{ url_for('jobs_page') }}">{{ icon('briefcase', 16) }} Job explorer</a>
+  </div>
+</div>
+{% endblock %}

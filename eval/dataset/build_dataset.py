@@ -1,0 +1,645 @@
+"""Build the offline evaluation dataset.
+
+The postings below are curated, realistic descriptions modelled on publicly
+advertised AI/ML, data and software roles (not copied verbatim from any single
+site). Relevance labels are graded 0-3 against the evaluation profile in
+``eval/dataset/profile.json`` (loaded by ``eval.fixtures.load_eval_profile``):
+
+    3 = strongly relevant (target role + core stack + work mode)
+    2 = relevant (adjacent role or partial stack fit)
+    1 = weak (transferable skills, wrong role/work mode)
+    0 = not relevant
+
+Run from the project root::
+
+    python eval/dataset/build_dataset.py
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+
+JOBS = [
+    {
+        "id": "ev-001",
+        "title": "AI Engineer",
+        "company": "Nimbus AI",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "mid",
+        "skills": ["Python", "LLMs", "RAG", "FastAPI", "PostgreSQL"],
+        "salary": "$110,000 - $140,000",
+        "posted_days_ago": 1,
+        "label": 3,
+        "description": (
+            "Build retrieval-augmented generation services in Python and FastAPI. "
+            "You will own ingestion, chunking, evaluation and deployment of LLM "
+            "applications backed by PostgreSQL and vector search."
+        ),
+    },
+    {
+        "id": "ev-002",
+        "title": "Machine Learning Engineer",
+        "company": "DataForge",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "senior",
+        "skills": ["Python", "PyTorch", "scikit-learn", "pandas", "Docker"],
+        "salary": "$125,000 - $155,000",
+        "posted_days_ago": 3,
+        "label": 3,
+        "description": (
+            "Train, evaluate and ship machine learning models with Python and "
+            "PyTorch. Experience with scikit-learn, pandas and containerised "
+            "training pipelines is expected."
+        ),
+    },
+    {
+        "id": "ev-003",
+        "title": "Applied AI Engineer",
+        "company": "VectorWorks",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "mid",
+        "skills": ["Python", "LLMs", "LangChain", "RAG", "FastAPI"],
+        "salary": "$105,000 - $135,000",
+        "posted_days_ago": 2,
+        "label": 3,
+        "description": (
+            "Ship LLM features end to end: prompt design, RAG retrieval, guardrails "
+            "and evaluation. Our stack is Python, FastAPI and LangChain with a "
+            "strong emphasis on measurable quality."
+        ),
+    },
+    {
+        "id": "ev-004",
+        "title": "NLP Engineer",
+        "company": "Lexi Systems",
+        "location": "Islamabad, Pakistan",
+        "remote": False,
+        "seniority": "mid",
+        "skills": ["Python", "NLP", "PyTorch", "Machine Learning"],
+        "salary": "PKR 300,000/month",
+        "posted_days_ago": 4,
+        "label": 3,
+        "description": (
+            "Work on document understanding and natural language processing in "
+            "Python. You will fine-tune transformer models and evaluate them on "
+            "real customer corpora."
+        ),
+    },
+    {
+        "id": "ev-005",
+        "title": "Deep Learning Engineer",
+        "company": "Visionary Labs",
+        "location": "Lahore, Pakistan",
+        "remote": False,
+        "seniority": "senior",
+        "skills": ["Python", "PyTorch", "Deep Learning", "Computer Vision"],
+        "salary": "PKR 350,000/month",
+        "posted_days_ago": 8,
+        "label": 3,
+        "description": (
+            "Design and train deep learning models for computer vision products. "
+            "Strong Python and PyTorch skills required; experience with model "
+            "compression and evaluation is a plus."
+        ),
+    },
+    {
+        "id": "ev-006",
+        "title": "LLM Evaluation Engineer",
+        "company": "EvalWorks",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "mid",
+        "skills": ["Python", "LLMs", "RAG", "Data Analysis", "pytest"],
+        "salary": "$100,000 - $130,000",
+        "posted_days_ago": 5,
+        "label": 3,
+        "description": (
+            "Own evaluation for production LLM systems: build scored datasets, "
+            "measure hallucination and retrieval quality, and automate regression "
+            "checks in Python and pytest."
+        ),
+    },
+    {
+        "id": "ev-007",
+        "title": "AI Product Engineer",
+        "company": "Copilot Studio",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "mid",
+        "skills": ["Python", "LLMs", "FastAPI", "React"],
+        "salary": "$115,000 - $145,000",
+        "posted_days_ago": 6,
+        "label": 3,
+        "description": (
+            "Join a small product team building AI copilots. You will connect LLM "
+            "backends in Python and FastAPI to a React interface and iterate with "
+            "real users."
+        ),
+    },
+    {
+        "id": "ev-008",
+        "title": "Research Scientist, LLM",
+        "company": "Horizon Research",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "senior",
+        "skills": ["Python", "LLMs", "PyTorch", "NLP"],
+        "salary": "$160,000 - $200,000",
+        "posted_days_ago": 12,
+        "label": 2,
+        "description": (
+            "Conduct research on large language models, including pretraining, "
+            "alignment and evaluation. A publication record and deep PyTorch "
+            "experience are expected."
+        ),
+    },
+    {
+        "id": "ev-009",
+        "title": "Prompt Engineer",
+        "company": "ChatterCo",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "junior",
+        "skills": ["LLMs", "Prompt Engineering", "Python"],
+        "salary": "$70,000 - $95,000",
+        "posted_days_ago": 7,
+        "label": 2,
+        "description": (
+            "Design and test prompts for customer-support automation. You will "
+            "write small Python utilities, run experiments and document what works."
+        ),
+    },
+    {
+        "id": "ev-010",
+        "title": "Junior Machine Learning Engineer",
+        "company": "DataForge",
+        "location": "Islamabad, Pakistan",
+        "remote": False,
+        "seniority": "junior",
+        "skills": ["Python", "scikit-learn", "pandas", "SQL"],
+        "salary": "PKR 180,000/month",
+        "posted_days_ago": 10,
+        "label": 2,
+        "description": (
+            "Support senior engineers with data preparation, model training and "
+            "reporting. Python, pandas, SQL and scikit-learn are used daily."
+        ),
+    },
+    {
+        "id": "ev-011",
+        "title": "Data Scientist (NLP)",
+        "company": "Insight Co",
+        "location": "Karachi, Pakistan",
+        "remote": False,
+        "seniority": "mid",
+        "skills": ["Python", "NLP", "pandas", "scikit-learn", "SQL"],
+        "salary": "PKR 260,000/month",
+        "posted_days_ago": 15,
+        "label": 2,
+        "description": (
+            "Analyse text data and build NLP models for classification and search. "
+            "Comfortable with Python, pandas, scikit-learn and SQL."
+        ),
+    },
+    {
+        "id": "ev-012",
+        "title": "MLOps Engineer",
+        "company": "ScaleOps",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "mid",
+        "skills": ["Python", "Docker", "Kubernetes", "AWS", "CI/CD"],
+        "salary": "$120,000 - $150,000",
+        "posted_days_ago": 9,
+        "label": 2,
+        "description": (
+            "Operate machine-learning infrastructure: containerised training, "
+            "model deployment, monitoring and CI/CD on AWS."
+        ),
+    },
+    {
+        "id": "ev-013",
+        "title": "Backend Python Engineer",
+        "company": "FinTech Cloud",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "mid",
+        "skills": ["Python", "FastAPI", "PostgreSQL", "Redis", "Docker"],
+        "salary": "$100,000 - $125,000",
+        "posted_days_ago": 2,
+        "label": 2,
+        "description": (
+            "Build resilient Python services and APIs with FastAPI, PostgreSQL and "
+            "Redis. You will own performance, observability and deployment."
+        ),
+    },
+    {
+        "id": "ev-014",
+        "title": "Data Engineer",
+        "company": "Pipeline Co",
+        "location": "Islamabad, Pakistan",
+        "remote": False,
+        "seniority": "mid",
+        "skills": ["Python", "SQL", "Airflow", "Spark", "PostgreSQL"],
+        "salary": "PKR 280,000/month",
+        "posted_days_ago": 20,
+        "label": 2,
+        "description": (
+            "Design batch and streaming data pipelines with Python, SQL, Airflow "
+            "and Spark. Strong PostgreSQL modelling skills are required."
+        ),
+    },
+    {
+        "id": "ev-015",
+        "title": "AI Solutions Architect",
+        "company": "CloudWorks",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "senior",
+        "skills": ["Python", "AWS", "LLMs", "Docker"],
+        "salary": "$140,000 - $175,000",
+        "posted_days_ago": 18,
+        "label": 2,
+        "description": (
+            "Help customers design LLM and data workloads on AWS. You will write "
+            "Python prototypes and guide teams on deployment and evaluation."
+        ),
+    },
+    {
+        "id": "ev-016",
+        "title": "Analytics Engineer",
+        "company": "MetricLab",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "mid",
+        "skills": ["SQL", "Python", "Tableau", "Data Analysis"],
+        "salary": "$90,000 - $115,000",
+        "posted_days_ago": 25,
+        "label": 1,
+        "description": (
+            "Own the analytics layer: SQL models, dashboards and reporting. Light "
+            "Python work for automation and data quality checks."
+        ),
+    },
+    {
+        "id": "ev-017",
+        "title": "Full-Stack Python Developer",
+        "company": "Bazaar Tech",
+        "location": "Lahore, Pakistan",
+        "remote": False,
+        "seniority": "mid",
+        "skills": ["Python", "Flask", "React", "JavaScript", "PostgreSQL"],
+        "salary": "PKR 250,000/month",
+        "posted_days_ago": 22,
+        "label": 1,
+        "description": (
+            "Build marketplace features with Flask, PostgreSQL and React. The role "
+            "leans frontend but touches Python services."
+        ),
+    },
+    {
+        "id": "ev-018",
+        "title": "DevOps Engineer",
+        "company": "InfraWorks",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "senior",
+        "skills": ["Docker", "Kubernetes", "Terraform", "AWS", "Linux"],
+        "salary": "$125,000 - $160,000",
+        "posted_days_ago": 30,
+        "label": 1,
+        "description": (
+            "Run Kubernetes clusters and Terraform-managed AWS infrastructure. "
+            "Some Python scripting for automation and incident tooling."
+        ),
+    },
+    {
+        "id": "ev-019",
+        "title": "Data Analyst",
+        "company": "Retailytics",
+        "location": "Karachi, Pakistan",
+        "remote": False,
+        "seniority": "junior",
+        "skills": ["SQL", "Excel", "Power BI", "Data Analysis"],
+        "salary": "PKR 160,000/month",
+        "posted_days_ago": 35,
+        "label": 1,
+        "description": (
+            "Produce weekly sales reports and dashboards in Power BI. Strong SQL "
+            "and Excel skills; Python is a nice-to-have."
+        ),
+    },
+    {
+        "id": "ev-020",
+        "title": "QA Automation Engineer",
+        "company": "Testify",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "mid",
+        "skills": ["Python", "Selenium", "Playwright", "pytest", "CI/CD"],
+        "salary": "$85,000 - $110,000",
+        "posted_days_ago": 28,
+        "label": 1,
+        "description": (
+            "Write and maintain automated test suites with Python, Selenium and "
+            "Playwright. Integrate checks into CI/CD pipelines."
+        ),
+    },
+    {
+        "id": "ev-021",
+        "title": "AI Ethics Researcher",
+        "company": "Policy Lab",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "mid",
+        "skills": ["Data Analysis", "LLMs", "Communication", "Research"],
+        "salary": "$95,000 - $120,000",
+        "posted_days_ago": 40,
+        "label": 1,
+        "description": (
+            "Study the societal impact of AI systems, run literature reviews and "
+            "write policy briefs. Technical fluency with LLMs is useful."
+        ),
+    },
+    {
+        "id": "ev-022",
+        "title": "Data Annotation Lead",
+        "company": "LabelWorks",
+        "location": "Islamabad, Pakistan",
+        "remote": False,
+        "seniority": "junior",
+        "skills": ["Data Analysis", "Excel", "Communication", "Leadership"],
+        "salary": "PKR 150,000/month",
+        "posted_days_ago": 45,
+        "label": 1,
+        "description": (
+            "Coordinate a small annotation team, maintain guidelines and audit "
+            "labelled data quality. Excel and clear communication are essential."
+        ),
+    },
+    {
+        "id": "ev-023",
+        "title": "Cloud Support Engineer",
+        "company": "CloudWorks",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "junior",
+        "skills": ["Linux", "AWS", "SQL", "Communication"],
+        "salary": "$60,000 - $80,000",
+        "posted_days_ago": 32,
+        "label": 1,
+        "description": (
+            "Troubleshoot customer workloads on AWS, write SQL diagnostics and "
+            "escalate platform issues to engineering."
+        ),
+    },
+    {
+        "id": "ev-024",
+        "title": "Frontend Engineer",
+        "company": "Pixel Studio",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "mid",
+        "skills": ["JavaScript", "React", "TypeScript", "CSS", "HTML"],
+        "salary": "$90,000 - $120,000",
+        "posted_days_ago": 5,
+        "label": 0,
+        "description": (
+            "Build accessible React interfaces with TypeScript and modern CSS. "
+            "Close collaboration with designers is central to the role."
+        ),
+    },
+    {
+        "id": "ev-025",
+        "title": "Mobile Developer",
+        "company": "AppForge",
+        "location": "Lahore, Pakistan",
+        "remote": False,
+        "seniority": "mid",
+        "skills": ["Java", "Kotlin", "Android"],
+        "salary": "PKR 240,000/month",
+        "posted_days_ago": 14,
+        "label": 0,
+        "description": (
+            "Develop and ship Android applications in Kotlin and Java, with a "
+            "focus on offline-first performance."
+        ),
+    },
+    {
+        "id": "ev-026",
+        "title": "Java Backend Developer",
+        "company": "Enterprise Co",
+        "location": "Karachi, Pakistan",
+        "remote": False,
+        "seniority": "senior",
+        "skills": ["Java", "Spring", "SQL", "Docker"],
+        "salary": "PKR 320,000/month",
+        "posted_days_ago": 11,
+        "label": 0,
+        "description": (
+            "Maintain large Spring Boot services for banking clients. Strong Java, "
+            "SQL and containerisation experience required."
+        ),
+    },
+    {
+        "id": "ev-027",
+        "title": "PHP Developer",
+        "company": "WebShop",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "mid",
+        "skills": ["PHP", "Laravel", "MySQL", "JavaScript"],
+        "salary": "$70,000 - $90,000",
+        "posted_days_ago": 21,
+        "label": 0,
+        "description": (
+            "Extend a Laravel e-commerce platform with PHP, MySQL and JavaScript. "
+            "Experience with payment integrations is a plus."
+        ),
+    },
+    {
+        "id": "ev-028",
+        "title": "Salesforce Administrator",
+        "company": "CRM Partners",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "mid",
+        "skills": ["Salesforce", "Excel", "Communication"],
+        "salary": "$80,000 - $100,000",
+        "posted_days_ago": 26,
+        "label": 0,
+        "description": (
+            "Configure Salesforce workflows, reports and user permissions. Partner "
+            "with sales operations on process improvements."
+        ),
+    },
+    {
+        "id": "ev-029",
+        "title": "Product Manager, AI Platform",
+        "company": "Nimbus AI",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "senior",
+        "skills": ["Product", "LLMs", "Communication", "Data Analysis"],
+        "salary": "$130,000 - $165,000",
+        "posted_days_ago": 7,
+        "label": 1,
+        "description": (
+            "Own the roadmap for an internal AI platform, translate customer needs "
+            "into requirements and measure adoption. Technical AI fluency expected."
+        ),
+    },
+    {
+        "id": "ev-030",
+        "title": "Technical Writer",
+        "company": "DevDocs",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "mid",
+        "skills": ["Communication", "Git", "Research"],
+        "salary": "$70,000 - $90,000",
+        "posted_days_ago": 16,
+        "label": 0,
+        "description": (
+            "Write developer documentation for APIs and SDKs, maintain docs-as-code "
+            "workflows in Git and interview engineers."
+        ),
+    },
+    {
+        "id": "ev-031",
+        "title": "Cybersecurity Analyst",
+        "company": "SecureNet",
+        "location": "Islamabad, Pakistan",
+        "remote": False,
+        "seniority": "mid",
+        "skills": ["Linux", "Python", "Communication"],
+        "salary": "PKR 270,000/month",
+        "posted_days_ago": 13,
+        "label": 0,
+        "description": (
+            "Monitor security alerts, investigate incidents and harden Linux "
+            "systems. Scripting in Python is useful for automation."
+        ),
+    },
+    {
+        "id": "ev-032",
+        "title": "Graphic Designer",
+        "company": "BrandHouse",
+        "location": "Karachi, Pakistan",
+        "remote": False,
+        "seniority": "mid",
+        "skills": ["Figma", "Photoshop", "Illustration"],
+        "salary": "PKR 140,000/month",
+        "posted_days_ago": 19,
+        "label": 0,
+        "description": (
+            "Create brand identities, campaign visuals and social assets in Figma "
+            "and Photoshop. Portfolio required."
+        ),
+    },
+    {
+        "id": "ev-033",
+        "title": "Marketing Manager",
+        "company": "GrowthCo",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "senior",
+        "skills": ["Marketing", "Communication", "Data Analysis"],
+        "salary": "$90,000 - $115,000",
+        "posted_days_ago": 24,
+        "label": 0,
+        "description": (
+            "Plan multi-channel campaigns, manage a small team and report on funnel "
+            "performance. B2B SaaS experience preferred."
+        ),
+    },
+    {
+        "id": "ev-034",
+        "title": "Customer Support Specialist",
+        "company": "HelpDesk",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "junior",
+        "skills": ["Communication", "Excel"],
+        "salary": "$40,000 - $55,000",
+        "posted_days_ago": 3,
+        "label": 0,
+        "description": (
+            "Answer customer tickets across chat and email, maintain help articles "
+            "and escalate technical issues."
+        ),
+    },
+    {
+        "id": "ev-035",
+        "title": "BI Analyst",
+        "company": "Dashboard Co",
+        "location": "Lahore, Pakistan",
+        "remote": False,
+        "seniority": "mid",
+        "skills": ["Power BI", "SQL", "Excel", "Tableau"],
+        "salary": "PKR 200,000/month",
+        "posted_days_ago": 29,
+        "label": 0,
+        "description": (
+            "Build executive dashboards in Power BI and Tableau, write SQL queries "
+            "and maintain reporting definitions."
+        ),
+    },
+    {
+        "id": "ev-036",
+        "title": "Machine Learning Intern",
+        "company": "DataForge",
+        "location": "Islamabad, Pakistan",
+        "remote": False,
+        "seniority": "intern",
+        "skills": ["Python", "scikit-learn", "pandas", "Machine Learning"],
+        "salary": "PKR 60,000/month stipend",
+        "posted_days_ago": 6,
+        "label": 2,
+        "description": (
+            "Six-month internship supporting model training and data preparation "
+            "with Python, pandas and scikit-learn. Mentorship provided."
+        ),
+    },
+    {
+        "id": "ev-037",
+        "title": "AI Engineer (Contract)",
+        "company": "Acme Labs",
+        "location": "Remote",
+        "remote": True,
+        "seniority": "mid",
+        "skills": ["Python", "LLMs", "FastAPI", "RAG", "Docker"],
+        "salary": "$70/hour",
+        "posted_days_ago": 1,
+        "label": 3,
+        "description": (
+            "Contract role building a document Q&A service with Python, FastAPI, "
+            "RAG and Docker. Deliver a measured evaluation harness alongside the "
+            "production API."
+        ),
+    },
+]
+
+
+def build() -> Path:
+    path = HERE / "jobs.jsonl"
+    with path.open("w", encoding="utf-8") as handle:
+        for job in JOBS:
+            handle.write(json.dumps(job, ensure_ascii=False) + "\n")
+    return path
+
+
+if __name__ == "__main__":
+    output = build()
+    labels = [job["label"] for job in JOBS]
+    print(f"wrote {len(JOBS)} postings to {output}")
+    print(
+        "labels: "
+        + ", ".join(f"{label}={labels.count(label)}" for label in (3, 2, 1, 0))
+    )

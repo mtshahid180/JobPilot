@@ -1,0 +1,44 @@
+{% extends "auth_base.html" %}
+{% from "components.html" import icon %}
+{% block auth_content %}
+
+<span class="eyebrow">Welcome back</span>
+<h2>Sign in to JobPilot</h2>
+<p class="auth-lede">Pick up where you left off — your jobs, drafts and applications are waiting.</p>
+
+{% if error %}
+<div class="alert alert--danger" role="alert">{{ icon('alert', 16) }}<span>{{ error }}</span></div>
+{% endif %}
+
+<form class="auth-form" method="post" action="{{ url_for('login_post') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="hidden" name="next" value="{{ next_url }}">
+
+  <div class="field">
+    <label for="login-email">Email</label>
+    <input class="input" id="login-email" name="email" type="email" value="{{ email or '' }}"
+           placeholder="you@example.com" autocomplete="email" required autofocus>
+  </div>
+
+  <div class="field">
+    <label for="login-password">Password</label>
+    <input class="input" id="login-password" name="password" type="password"
+           placeholder="Your password" autocomplete="current-password" required>
+  </div>
+
+  <button class="btn btn--primary btn--block" type="submit">
+    Sign in {{ icon('arrow-right', 15) }}
+  </button>
+</form>
+
+<p class="auth-switch">
+  New to JobPilot?
+  <a href="{{ url_for('signup', next=next_url or None) }}">Create your account</a>
+</p>
+
+<div class="auth-assurance">
+  {{ icon('lock', 15) }}
+  <span>Accounts are isolated. You only ever see your own data.</span>
+</div>
+
+{% endblock %}

@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="JobPilot — an MCP-powered job search agent with persistent memory and verified CV tailoring.">
+  <title>{{ title }} · JobPilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop stop-color='%237c6cff'/><stop offset='1' stop-color='%2322d3ee'/></linearGradient></defs><rect width='64' height='64' rx='16' fill='%230b1020'/><path d='M16 33l31-15-11 32-6-12z' fill='url(%23g)'/></svg>">
+  <script>
+    window.JOBPILOT = {
+      page: {{ active | tojson }},
+      llmEnabled: {{ llm_enabled | tojson }},
+      pendingApprovals: {{ pending_approvals | tojson }},
+      profileName: {{ profile_name | tojson }},
+      profileCompleteness: {{ profile_completeness | tojson }}
+    };
+    (function () {
+      try {
+        var stored = localStorage.getItem('jobpilot-theme');
+        if (stored === 'light' || stored === 'dark') document.documentElement.dataset.theme = stored;
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body data-page="{{ active }}" class="{% block body_class %}{% endblock %}">
+{% from "components.html" import icon %}
+
+{% include "_icons.html" %}
+
+<div class="app-shell">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="{{ url_for('dashboard') }}">
+      <span class="brand__mark">
+        <svg viewBox="0 0 64 64" width="38" height="38" aria-hidden="true">
+          <defs>
+            <linearGradient id="brand-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop stop-color="#8b7cff"/><stop offset="1" stop-color="#22d3ee"/>
+            </linearGradient>
+          </defs>
+          <rect width="64" height="64" rx="17" fill="rgba(124,108,255,.12)"/>
+          <path d="M15 34 51 16 39 50l-7-13z" fill="url(#brand-grad)"/>
+          <path d="M32 37l19-21" stroke="#0a0f1c" stroke-width="2" opacity=".45"/>
+        </svg>
+      </span>
+      <span class="brand__text">
+        <strong>JobPilot</strong>
+        <small>AI job-search agent</small>
+      </span>
+    </a>
+
+    <nav class="sidebar-nav" aria-label="Main">
+      <div class="nav-group">
+        <p class="nav-group__label">Workspace</p>
+        <a class="nav-link {% if active == 'dashboard' %}is-active{% endif %}" href="{{ url_for('dashboard') }}">{{ icon('home') }}<span>Dashboard</span></a>
+        <a class="nav-link {% if active == 'jobs' %}is-active{% endif %}" href="{{ url_for('jobs_page') }}">{{ icon('briefcase') }}<span>Job explorer</span></a>
+        <a class="nav-link {% if active == 'agent' %}is-active{% endif %}" href="{{ url_for('agent_page') }}">{{ icon('sparkles') }}<span>Agent console</span><span class="nav-kbd">⌘K</span></a>
+      </div>
+      <div class="nav-group">
+        <p class="nav-group__label">Pipeline</p>
+        <a class="nav-link {% if active == 'tracker' %}is-active{% endif %}" href="{{ url_for('tracker_page') }}">{{ icon('kanban') }}<span>Tracker</span></a>
+        <a class="nav-link {% if active == 'drafts' %}is-active{% endif %}" href="{{ url_for('drafts_page') }}">{{ icon('file-text') }}<span>Drafts</span></a>
+      </div>
+      <div class="nav-group">
+        <p class="nav-group__label">Knowledge</p>
+        <a class="nav-link {% if active == 'profile' %}is-active{% endif %}" href="{{ url_for('profile_page') }}">{{ icon('user') }}<span>Profile</span></a>
+        <a class="nav-link {% if active == 'memory' %}is-active{% endif %}" href="{{ url_for('memory_page') }}">{{ icon('brain') }}<span>Memory</span></a>
+        <a class="nav-link {% if active == 'runs' %}is-active{% endif %}" href="{{ url_for('runs_page') }}">{{ icon('activity') }}<span>Runs &amp; traces</span></a>
+      </div>
+      <div class="nav-group">
+        <p class="nav-group__label">System</p>
+        <a class="nav-link {% if active == 'settings' %}is-active{% endif %}" href="{{ url_for('settings_page') }}">{{ icon('settings') }}<span>Settings</span></a>
+      </div>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="system-card">
+        <div class="system-card__row">
+          <span class="status-dot status-dot--live"></span>
+          <span>{{ 'LLM connected' if llm_enabled else 'Local mode' }}</span>
+          <span class="system-card__chip">{{ 'API' if llm_enabled else 'Free' }}</span>
+        </div>
+        <div class="system-card__meter">
+          <span style="width: {{ ((budget.spent_total / budget.max_total) * 100) | round(1) if budget.max_total else 0 }}%"></span>
+        </div>
+        <p class="system-card__meta">${{ '%.3f' | format(budget.spent_total) }} of ${{ '%.2f' | format(budget.max_total) }} budget</p>
+      </div>
+      <div class="sidebar-user">
+        <a class="sidebar-user__link" href="{{ url_for('profile_page') }}" title="Open profile">
+          <span class="avatar">{{ profile_initials }}</span>
+          <span class="sidebar-user__meta">
+            <strong>{{ profile_name or (current_user.display_name if current_user else 'You') }}</strong>
+            <small>{{ current_user.email if current_user else '' }}</small>
+          </span>
+        </a>
+        <form class="sidebar-user__logout" method="post" action="{{ url_for('logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="icon-btn" type="submit" title="Sign out" aria-label="Sign out">
+            {{ icon('logout', 17) }}
+          </button>
+        </form>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn topbar__menu" id="sidebar-toggle" aria-label="Open navigation">{{ icon('menu') }}</button>
+      <div class="topbar__title">
+        <span class="topbar__eyebrow">Workspace</span>
+        <h1>{{ title }}</h1>
+      </div>
+      <div class="topbar__spacer"></div>
+      <button class="command-trigger" id="command-trigger" type="button">
+        {{ icon('search', 17) }}
+        <span>Search or jump to…</span>
+        <kbd>Ctrl K</kbd>
+      </button>
+      <a class="btn btn--primary btn--sm topbar__cta" href="{{ url_for('agent_page') }}">{{ icon('sparkles', 16) }}<span>Ask JobPilot</span></a>
+      <button class="icon-btn notification-btn" id="approvals-btn" aria-label="Approvals" title="Approvals">
+        {{ icon('bell', 19) }}
+        <span class="notification-badge {% if not pending_approvals %}is-hidden{% endif %}" id="approval-count">{{ pending_approvals }}</span>
+      </button>
+      <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+        <span class="theme-icon theme-icon--dark">{{ icon('sun', 19) }}</span>
+        <span class="theme-icon theme-icon--light">{{ icon('moon', 19) }}</span>
+      </button>
+    </header>
+
+    <main class="content">
+      {% block content %}{% endblock %}
+      <footer class="app-footer">
+        <span>JobPilot v0.1 · local-first</span>
+        <span class="app-footer__sep">·</span>
+        <span>No external action without approval</span>
+        <span class="app-footer__sep">·</span>
+        <a href="{{ url_for('settings_page') }}">System status</a>
+      </footer>
+    </main>
+  </div>
+</div>
+
+<div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+<div id="modal-root"></div>
+<div class="command-palette" id="command-palette" hidden>
+  <div class="command-palette__backdrop" data-close-command></div>
+  <div class="command-palette__panel" role="dialog" aria-modal="true" aria-label="Command palette">
+    <div class="command-palette__input">
+      {{ icon('search', 18) }}
+      <input id="command-input" type="text" placeholder="Jump to a page or run an action…" autocomplete="off">
+      <kbd>Esc</kbd>
+    </div>
+    <div class="command-palette__list" id="command-list"></div>
+    <div class="command-palette__foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+      <span><kbd>↵</kbd> open</span>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

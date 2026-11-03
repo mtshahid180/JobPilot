@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% from "components.html" import icon %}
+{% block content %}
+
+<div class="page-head">
+  <div class="page-head__text">
+    <span class="eyebrow">Profile</span>
+    <h1>Your source of truth</h1>
+    <p>Everything the agent claims is verified against this profile. The more precise your bullets, the stronger your tailored drafts.</p>
+  </div>
+  <div class="page-head__actions">
+    <button class="btn btn--primary" type="button" id="save-top">{{ icon('check', 16) }} Save profile</button>
+  </div>
+</div>
+
+{% if needs_onboarding %}
+<div class="setup-callout">
+  <span class="setup-callout__icon">{{ icon('wand', 18) }}</span>
+  <div class="setup-callout__text">
+    <strong>New here? Start with your resume.</strong>
+    <p>Upload a PDF or DOCX, review the facts JobPilot extracts, and merge only what is correct. You can refine every field afterwards.</p>
+  </div>
+  <a class="btn btn--secondary btn--sm" href="#resume-upload-section">{{ icon('arrow-right', 14) }} Upload resume</a>
+</div>
+{% endif %}
+
+<div class="profile-layout">
+  <form class="profile-stack" id="profile-form" autocomplete="off">
+    <section class="card profile-section">
+      <div class="profile-section__head">
+        <div>
+          <h2>{{ icon('user', 16) }} Basics</h2>
+          <p>How you appear to recruiters and in generated drafts.</p>
+        </div>
+      </div>
+      <div class="profile-section__body">
+        <div class="form-grid">
+          <div class="field">
+            <label for="full_name">Full name</label>
+            <input class="input" id="full_name" name="full_name" type="text" placeholder="Ayesha Khan">
+          </div>
+          <div class="field">
+            <label for="headline">Headline</label>
+            <input class="input" id="headline" name="headline" type="text" placeholder="AI Engineer · Python, LLMs, RAG">
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input class="input" id="email" name="email" type="email" placeholder="you@example.com">
+          </div>
+          <div class="field">
+            <label for="phone">Phone</label>
+            <input class="input" id="phone" name="phone" type="tel" placeholder="+92 300 0000000">
+          </div>
+          <div class="field">
+            <label for="location">Location</label>
+            <input class="input" id="location" name="location" type="text" placeholder="Islamabad, Pakistan">
+          </div>
+          <div class="field">
+            <label for="remote_preference">Work preference</label>
+            <select class="select" id="remote_preference" name="remote_preference">
+              <option value="any">Any</option>
+              <option value="remote">Remote</option>
+              <option value="hybrid">Hybrid</option>
+              <option value="onsite">On-site</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="summary">Summary</label>
+          <textarea class="textarea" id="summary" name="summary" placeholder="Two or three sentences about what you build and the impact you have had."></textarea>
+          <span class="field-hint">Concrete scope beats adjectives. Numbers are allowed only if you actually achieved them.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card profile-section">
+      <div class="profile-section__head">
+        <div>
+          <h2>{{ icon('brain', 16) }} Skills</h2>
+          <p>Only list skills you could defend in an interview.</p>
+        </div>
+        <span class="badge badge--neutral" id="skill-count">0 skills</span>
+      </div>
+      <div class="profile-section__body">
+        <div class="chip-list" id="skill-chips"></div>
+        <div class="field">
+          <label for="skill-input">Add a skill</label>
+          <div class="row-8">
+            <input class="input" id="skill-input" type="text" placeholder="e.g. FastAPI — press Enter">
+            <button class="btn btn--secondary" type="button" id="skill-add">Add</button>
+          </div>
+          <span class="field-hint">Matched skills drive 45% of your job score.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card profile-section">
+      <div class="profile-section__head">
+        <div>
+          <h2>{{ icon('briefcase', 16) }} Experience</h2>
+          <p>Bullets become the evidence pool for tailored CVs.</p>
+        </div>
+        <button class="btn btn--secondary btn--sm" type="button" id="add-experience">{{ icon('plus', 14) }} Add role</button>
+      </div>
+      <div class="profile-section__body" id="experience-list"></div>
+    </section>
+
+    <section class="card profile-section">
+      <div class="profile-section__head">
+        <div>
+          <h2>{{ icon('calendar', 16) }} Education</h2>
+          <p>Degrees, certifications and relevant training.</p>
+        </div>
+        <button class="btn btn--secondary btn--sm" type="button" id="add-education">{{ icon('plus', 14) }} Add education</button>
+      </div>
+      <div class="profile-section__body" id="education-list"></div>
+    </section>
+
+    <section class="card profile-section">
+      <div class="profile-section__head">
+        <div>
+          <h2>{{ icon('briefcase', 16) }} Projects & credentials</h2>
+          <p>Extracted from your resume. Re-upload or edit the CV text to update them.</p>
+        </div>
+      </div>
+      <div class="profile-section__body">
+        <div id="projects-list"></div>
+        <div id="certifications-list"></div>
+        <div id="achievements-list"></div>
+      </div>
+    </section>
+
+    <section class="card profile-section">
+      <div class="profile-section__head">
+        <div>
+          <h2>{{ icon('filter', 16) }} Targeting</h2>
+          <p>What you want, where, and at what compensation.</p>
+        </div>
+      </div>
+      <div class="profile-section__body">
+        <div class="form-grid">
+          <div class="field">
+            <label for="target_roles">Target roles</label>
+            <input class="input" id="target_roles" type="text" placeholder="AI Engineer, ML Engineer, Backend Engineer">
+            <span class="field-hint">Comma separated. Used for role matching.</span>
+          </div>
+          <div class="field">
+            <label for="preferred_locations">Preferred locations</label>
+            <input class="input" id="preferred_locations" type="text" placeholder="Remote, Islamabad, Dubai">
+          </div>
+          <div class="field">
+            <label for="salary_floor">Salary floor</label>
+            <input class="input" id="salary_floor" type="text" placeholder="e.g. $45,000 / year">
+          </div>
+          <div class="field">
+            <label for="work_authorization">Work authorization</label>
+            <input class="input" id="work_authorization" type="text" placeholder="e.g. Pakistan, requires sponsorship for EU">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="languages">Languages</label>
+            <input class="input" id="languages" type="text" placeholder="English, Urdu">
+          </div>
+          <div class="field">
+            <label for="links">Links</label>
+            <input class="input" id="links" type="text" placeholder="https://github.com/you, https://linkedin.com/in/you">
+            <span class="field-hint">Comma separated portfolio, GitHub or LinkedIn URLs.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card profile-section" id="resume-upload-section">
+      <div class="profile-section__head">
+        <div>
+          <h2>{{ icon('file-text', 16) }} Upload a resume</h2>
+          <p>PDF, DOCX, TXT or Markdown. Text is extracted locally and kept private to your account.</p>
+        </div>
+        <span class="badge badge--neutral">Private</span>
+      </div>
+      <div class="profile-section__body">
+        <div class="resume-uploader">
+          <label class="resume-drop" for="resume-file">
+            {{ icon('file-text', 20) }}
+            <strong>Choose a resume file</strong>
+            <span class="field-hint">Up to 10 MB. Scanned image PDFs need OCR, which is not available.</span>
+            <input class="resume-file-input" id="resume-file" type="file" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown">
+          </label>
+          <button class="btn btn--primary" type="button" id="resume-upload">{{ icon('wand', 15) }} Extract and review</button>
+        </div>
+        <p class="field-hint" id="resume-status">Nothing uploaded yet.</p>
+        <div class="resume-review" id="resume-review" hidden></div>
+        <div class="resume-list" id="resume-list"></div>
+      </div>
+    </section>
+
+    <section class="card profile-section" id="cv-import">
+      <div class="profile-section__head">
+        <div>
+          <h2>{{ icon('file-text', 16) }} Import from an existing CV</h2>
+          <p>Paste raw text. The parser only extracts what is literally present.</p>
+        </div>
+      </div>
+      <div class="profile-section__body">
+        <div class="import-zone">
+          <textarea class="textarea" id="cv-text" placeholder="Paste your CV text here…&#10;&#10;Name&#10;Headline&#10;email · phone · location&#10;&#10;EXPERIENCE&#10;AI Engineer | Nexus Labs | 2024 - present&#10;- Built …"></textarea>
+        </div>
+        <div class="row-8 wrap">
+          <button class="btn btn--outline" type="button" id="parse-cv">{{ icon('wand', 15) }} Parse into profile</button>
+          <span class="field-hint">Parsing saves immediately. Review every field afterwards.</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="sticky-save" id="sticky-save">
+      <p><strong>Unsaved changes</strong> · your agent reads the saved profile only.</p>
+      <div class="row-8">
+        <button class="btn btn--ghost btn--sm" type="button" id="discard-changes">Discard</button>
+        <button class="btn btn--primary btn--sm" type="button" id="save-bottom">{{ icon('check', 14) }} Save profile</button>
+      </div>
+    </div>
+  </form>
+
+  <aside class="profile-stack">
+    <section class="card completeness-card" id="completeness-card">
+      <div id="completeness-ring">{{ icon('user', 20) }}</div>
+      <h3>Profile completeness</h3>
+      <p id="completeness-copy">Loading your profile…</p>
+      <div class="completeness-list" id="completeness-list"></div>
+    </section>
+
+    <section class="card">
+      <div class="panel-head">
+        <div class="panel-head__title">
+          <h2>Why this matters</h2>
+          <p>Guardrails depend on accurate input.</p>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="quality-list">
+          <div class="quality-item">
+            <span>{{ icon('shield', 15) }}</span>
+            <div><strong>No invented claims</strong><small>Every tailored bullet must trace back to a bullet or skill here.</small></div>
+          </div>
+          <div class="quality-item">
+            <span>{{ icon('chart', 15) }}</span>
+            <div><strong>Better ranking</strong><small>Skills and target roles drive match scores and filtering.</small></div>
+          </div>
+          <div class="quality-item">
+            <span>{{ icon('file-text', 15) }}</span>
+            <div><strong>ATS-friendly drafts</strong><small>Plain text, clean structure, no fabricated metrics.</small></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="panel-head">
+        <div class="panel-head__title">
+          <h2>Detected skills</h2>
+          <p>Evidence count from bullets and roles.</p>
+        </div>
+      </div>
+      <div class="panel-body" id="evidence-skills">
+        <p class="tiny faint">Save your profile to see evidence counts.</p>
+      </div>
+    </section>
+  </aside>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+<script src="{{ url_for('static', filename='js/resume.js') }}"></script>
+{% endblock %}

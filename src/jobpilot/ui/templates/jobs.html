@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% from "components.html" import icon %}
+{% block content %}
+
+<div class="page-head">
+  <div class="page-head__text">
+    <span class="eyebrow">Job explorer</span>
+    <h1>Find roles worth your time</h1>
+    <p>One pipeline searches every live board in parallel, deduplicates, filters by real geography, and labels each role exact, related or unverified.</p>
+  </div>
+  <div class="page-head__actions">
+    <span class="activity-pill" id="activity-pill" aria-live="polite">
+      <span class="activity-dot" aria-hidden="true"></span>
+      <span id="activity-label">Idle</span>
+    </span>
+    <button class="btn btn--secondary" type="button" id="import-btn">{{ icon('plus', 16) }} Import a job</button>
+    <a class="btn btn--primary" href="{{ url_for('agent_page') }}">{{ icon('sparkles', 16) }} Ask JobPilot</a>
+  </div>
+</div>
+
+<form class="jobs-toolbar" id="jobs-form" autocomplete="off" role="search">
+  <div class="jobs-search">
+    <div class="input-icon" style="flex:1">
+      {{ icon('search', 17) }}
+      <input class="input" id="jobs-query" name="q" type="search" placeholder="Finance manager, registered nurse, sales…" aria-label="Role, category or keywords">
+    </div>
+    <button class="btn btn--primary jobs-search__submit" type="submit" id="jobs-submit">{{ icon('search', 15) }} Search live jobs</button>
+  </div>
+  <div class="input-icon jobs-location">
+    {{ icon('map-pin', 16) }}
+    <input class="input" id="jobs-location" name="location" type="text" placeholder="Exact city or country…" aria-label="Exact city or country">
+  </div>
+  <label class="toggle" title="Remote only — exact workplace type">
+    <input type="checkbox" id="jobs-remote">
+    <span class="toggle__track"></span>
+    <span>Remote</span>
+  </label>
+  <button class="btn btn--ghost btn--icon" type="button" id="jobs-refresh" title="Bypass the 5-minute cache" aria-label="Force a fresh search">
+    {{ icon('refresh', 16) }}
+  </button>
+</form>
+
+<div class="search-progress" id="search-progress" hidden aria-live="polite">
+  <div class="search-progress__head">
+    <span class="activity-dot is-live" aria-hidden="true"></span>
+    <strong id="search-stage">Contacting enabled sources in parallel…</strong>
+    <span class="search-progress__timer" id="search-timer">0.0s</span>
+  </div>
+  <div class="search-progress__track" role="progressbar" aria-label="Live search progress"><span></span></div>
+  <p class="field-hint" id="search-progress-hint">Live sources run in parallel with a 45-second budget. A slow source is reported as timed out instead of delaying results.</p>
+</div>
+
+<div class="jobs-layout">
+  <aside class="card filters-panel" aria-label="Search filters">
+    <div class="filter-group">
+      <span class="filter-group__label">Role category</span>
+      <select class="select" id="filter-category" aria-label="Role category">
+        <option value="">Any category</option>
+        {% for category in categories %}
+        <option value="{{ category.key }}">{{ category.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-group__label">Workplace</span>
+      <select class="select" id="filter-workplace" aria-label="Workplace type">
+        <option value="">Any workplace</option>
+        <option value="remote">Remote</option>
+        <option value="hybrid">Hybrid</option>
+        <option value="onsite">On-site</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-group__label">Seniority</span>
+      <select class="select" id="filter-seniority" aria-label="Seniority">
+        <option value="">Any level</option>
+        <option value="intern">Internship</option>
+        <option value="junior">Junior / entry</option>
+        <option value="mid">Mid-level</option>
+        <option value="senior">Senior</option>
+        <option value="lead">Lead / principal</option>
+        <option value="manager">Manager / director</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-group__label">Employment</span>
+      <select class="select" id="filter-employment" aria-label="Employment type">
+        <option value="">Any type</option>
+        <option value="full-time">Full-time</option>
+        <option value="part-time">Part-time</option>
+        <option value="contract">Contract</option>
+        <option value="internship">Internship</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-group__label">Posted within</span>
+      <select class="select" id="filter-posted" aria-label="Posted within">
+        <option value="">Any time</option>
+        <option value="7">Last 7 days</option>
+        <option value="14">Last 14 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-group__label">Match transparency</span>
+      <label class="filter-check"><input type="checkbox" id="filter-related" checked> Include related occupations</label>
+      <label class="filter-check"><input type="checkbox" id="filter-unverified" checked> Include unverified eligibility</label>
+      <span class="field-hint">Unverified means a remote role did not state which countries it can hire in. It is never shown as a verified match.</span>
+    </div>
+    <div class="filter-group">
+      <span class="filter-group__label">Library</span>
+      <label class="filter-check"><input type="checkbox" id="filter-saved"> Saved only</label>
+      <label class="filter-check"><input type="checkbox" id="filter-scored"> Scored only</label>
+      <div class="filter-range">
+        <input type="range" id="filter-score" min="0" max="90" step="5" value="0" aria-label="Minimum profile match">
+        <output id="filter-score-value">0</output>
+      </div>
+      <span class="field-hint">Hide roles below this profile score. 75+ is a strong fit.</span>
+    </div>
+    <div class="filter-group">
+      <span class="filter-group__label">Source</span>
+      <select class="select" id="filter-source">
+        <option value="">All sources</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-group__label">Sort</span>
+      <select class="select" id="filter-sort">
+        <option value="score">Best profile match</option>
+        <option value="relevance">Search relevance</option>
+        <option value="recent">Most recent</option>
+        <option value="company">Company A–Z</option>
+        <option value="title">Title A–Z</option>
+      </select>
+    </div>
+    <div class="stack-8">
+      <button class="btn btn--secondary btn--sm btn--block" type="button" id="filter-apply">{{ icon('filter', 14) }} Apply filters</button>
+      <button class="btn btn--ghost btn--sm btn--block" type="button" id="filter-reset">Reset filters</button>
+    </div>
+    <p class="field-hint filter-note" id="filters-mode-note">Filters apply to live searches and to your saved library.</p>
+  </aside>
+
+  <section aria-label="Job results">
+    <div class="results-bar">
+      <span class="results-bar__count" id="results-count">Loading jobs…</span>
+      <div class="results-bar__meta" id="results-meta"></div>
+    </div>
+
+    <details class="search-notes" id="search-notes" hidden>
+      <summary>{{ icon('info', 13) }} How this result set was produced</summary>
+      <div id="search-notes-body"></div>
+    </details>
+
+    <div class="jobs-grid" id="jobs-grid">
+      <div class="skeleton-card"><div class="skeleton skeleton--title"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div></div>
+      <div class="skeleton-card"><div class="skeleton skeleton--title"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div></div>
+      <div class="skeleton-card"><div class="skeleton skeleton--title"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div></div>
+      <div class="skeleton-card"><div class="skeleton skeleton--title"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div></div>
+    </div>
+
+    <nav class="pager" id="jobs-pager" aria-label="Result pages" hidden>
+      <button class="btn btn--secondary btn--sm" type="button" id="pager-prev">{{ icon('arrow-left', 13) }} Previous</button>
+      <span class="pager__status" id="pager-status"></span>
+      <button class="btn btn--secondary btn--sm" type="button" id="pager-next">Next {{ icon('arrow-right', 13) }}</button>
+    </nav>
+  </section>
+</div>
+
+<div class="drawer-backdrop" id="job-backdrop"></div>
+<aside class="drawer" id="job-drawer" aria-label="Job details" aria-hidden="true"></aside>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/jobs.js') }}"></script>
+{% endblock %}

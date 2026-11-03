@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% from "components.html" import icon, stat_card %}
+{% block content %}
+
+<div class="page-head">
+  <div class="page-head__text">
+    <span class="eyebrow">Observability</span>
+    <h1>Every run, step and dollar</h1>
+    <p>Tool calls, approvals, token spend and verification are recorded per run. Use a trace to explain exactly why the agent did something.</p>
+  </div>
+  <div class="page-head__actions">
+    <button class="btn btn--secondary" type="button" id="runs-refresh">{{ icon('refresh', 16) }} Refresh</button>
+    <a class="btn btn--primary" href="{{ url_for('agent_page') }}">{{ icon('sparkles', 16) }} New run</a>
+  </div>
+</div>
+
+<section class="stats-grid" aria-label="Run stats">
+  {{ stat_card('run-stat-total', 'Runs', '—', 'All agent executions', 'activity', 'accent') }}
+  {{ stat_card('run-stat-completed', 'Completed', '—', 'Finished without error', 'check', 'green') }}
+  {{ stat_card('run-stat-tokens', 'Tokens', '—', 'Only in LLM mode', 'zap', 'cyan') }}
+  {{ stat_card('run-stat-cost', 'Spend', '—', 'Budget tracked per call', 'chart', 'amber') }}
+</section>
+
+<div class="dashboard-grid">
+  <section class="card">
+    <div class="panel-head">
+      <div class="panel-head__title">
+        <h2>Run log</h2>
+        <p>Newest first. Click a row to inspect its trace.</p>
+      </div>
+      <span class="badge badge--neutral" id="run-count">0 runs</span>
+    </div>
+    <div class="panel-body panel-body--flush">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Goal</th><th>Status</th><th>Mode</th><th>Started</th><th>Steps</th><th>Cost</th></tr></thead>
+          <tbody id="runs-table">
+            <tr><td colspan="6"><div class="list-empty">Loading runs…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <aside class="card" id="run-detail">
+    <div class="panel-head">
+      <div class="panel-head__title">
+        <h2>Trace inspector</h2>
+        <p>Select a run to see its events.</p>
+      </div>
+      <span class="badge badge--neutral" id="detail-status">—</span>
+    </div>
+    <div class="panel-body" id="trace-body">
+      <div class="inspector__empty">
+        {{ icon('activity', 24) }}<br><br>
+        No run selected. Choose a row from the log to inspect tool calls, approvals and guardrail events.
+      </div>
+    </div>
+  </aside>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/runs.js') }}"></script>
+{% endblock %}

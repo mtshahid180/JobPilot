@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% from "components.html" import icon %}
+{% block content %}
+
+<div class="agent-layout">
+  <section class="chat-panel" aria-label="Agent chat">
+    <div class="chat-head">
+      <span class="chat-welcome__orb" style="width:38px;height:38px;border-radius:11px">{{ icon('sparkles', 19) }}</span>
+      <div class="chat-head__main">
+        <h2>JobPilot agent <span class="badge badge--{{ 'cyan' if llm_enabled else 'neutral' }}">{{ 'LLM mode' if llm_enabled else 'Local mode' }}</span></h2>
+        <p id="chat-subtitle">Tools run through permissions, budget and tracing.</p>
+      </div>
+      <select class="select" id="session-select" aria-label="Session" style="width:auto;max-width:190px;height:34px;font-size:11.5px"></select>
+      <button class="icon-btn" type="button" id="new-session" title="New session" aria-label="New session">{{ icon('plus', 17) }}</button>
+    </div>
+
+    <div class="chat-body" id="chat-body">
+      <div class="chat-day">Today</div>
+      <div class="chat-welcome" id="chat-welcome">
+        <div class="chat-welcome__orb">{{ icon('sparkles', 26) }}</div>
+        <h3>What should we chase today?</h3>
+        <p>Ask for roles, a tailored CV, a skill-gap review, or a follow-up plan. Every action is traceable and verified against your profile.</p>
+        <div class="suggestions">
+          <button class="suggestion" type="button" data-prompt="Find remote Python AI engineer jobs and rank the best matches.">Find remote AI roles</button>
+          <button class="suggestion" type="button" data-prompt="Tailor my CV to the best matching job and verify every claim.">Tailor my CV</button>
+          <button class="suggestion" type="button" data-prompt="What skills am I missing for senior AI engineer roles?">Review my skill gap</button>
+          <button class="suggestion" type="button" data-prompt="Which applications need a follow-up this week?">Check follow-ups</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-composer">
+      <form class="composer-box" id="composer" autocomplete="off">
+        <textarea id="composer-input" rows="1" placeholder="Ask JobPilot to search, score, tailor or track…" aria-label="Message"></textarea>
+        <button class="btn btn--primary composer-send" type="submit" id="composer-send" aria-label="Send">{{ icon('send', 16) }}</button>
+      </form>
+      <div class="chat-composer__meta">
+        <span class="activity-dot" id="composer-dot" aria-hidden="true"></span>
+        <span id="composer-status">{{ 'LLM gateway ready' if llm_enabled else 'Deterministic local planner' }}</span>
+        <span class="composer-elapsed" id="composer-elapsed" hidden>0.0s</span>
+        <span class="dot"></span>
+        <span>Enter to send · Shift+Enter for a new line</span>
+        <select id="agent-mode" class="composer-mode" aria-label="Agent mode" style="border:1px solid var(--border);outline:none;cursor:pointer">
+          <option value="auto">auto</option>
+          <option value="local">local</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <aside class="inspector" aria-label="Run inspector">
+    <div class="chat-head">
+      <div class="chat-head__main">
+        <h2>{{ icon('activity', 15) }} Run inspector</h2>
+        <p>Live plan, tool calls and verification.</p>
+      </div>
+      <span class="badge badge--neutral" id="inspector-status">idle</span>
+    </div>
+    <div class="inspector__body" id="inspector-body">
+      <div class="inspector__empty">
+        {{ icon('terminal', 22) }}<br><br>
+        No run yet. Send a message and the execution plan appears here — including any approval gates.
+      </div>
+    </div>
+  </aside>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/agent.js') }}"></script>
+{% endblock %}

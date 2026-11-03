@@ -1,0 +1,46 @@
+{% macro icon(name, size=20, cls="") %}
+<svg class="icon {{ cls }}" width="{{ size }}" height="{{ size }}" aria-hidden="true" focusable="false">
+  <use href="#icon-{{ name }}"></use>
+</svg>
+{% endmacro %}
+
+{% macro badge(text, tone="neutral", dot=false) %}
+<span class="badge badge--{{ tone }}">{% if dot %}<span class="badge__dot"></span>{% endif %}{{ text }}</span>
+{% endmacro %}
+
+{% macro score_ring(score, size=48) %}
+{% set value = (score or 0) | round(0) | int %}
+<span class="score-ring{% if value >= 75 %} score-ring--high{% elif value >= 50 %} score-ring--mid{% else %} score-ring--low{% endif %}"
+      style="--score: {{ value }}; --size: {{ size }}px;">
+  <span class="score-ring__value">{{ value }}</span>
+</span>
+{% endmacro %}
+
+{% macro empty_state(icon_name, title, text, action_label="", action_href="", action_id="") %}
+<div class="empty-state">
+  <div class="empty-state__icon">{{ icon(icon_name, 26) }}</div>
+  <h3>{{ title }}</h3>
+  <p>{{ text }}</p>
+  {% if action_label %}
+  <a class="btn btn--secondary btn--sm" {% if action_href %}href="{{ action_href }}"{% endif %} {% if action_id %}id="{{ action_id }}"{% endif %}>{{ action_label }}</a>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{% macro stat_card(id, label, value, meta="", icon_name="chart", tone="accent") %}
+<article class="stat-card">
+  <div class="stat-card__top">
+    <span class="stat-card__label">{{ label }}</span>
+    <span class="stat-card__icon stat-card__icon--{{ tone }}">{{ icon(icon_name, 18) }}</span>
+  </div>
+  <div class="stat-card__value" id="{{ id }}">{{ value }}</div>
+  <div class="stat-card__meta" id="{{ id }}-meta">{{ meta }}</div>
+</article>
+{% endmacro %}
+
+{% macro skeleton_card(lines=3) %}
+<div class="skeleton-card">
+  <div class="skeleton skeleton--title"></div>
+  {% for i in range(lines) %}<div class="skeleton skeleton--line"></div>{% endfor %}
+</div>
+{% endmacro %}

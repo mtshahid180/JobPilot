@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "components.html" import icon, stat_card %}
+{% block content %}
+
+<div class="page-head">
+  <div class="page-head__text">
+    <span class="eyebrow">Tracker</span>
+    <h1>Applications, without the spreadsheet</h1>
+    <p>Drag cards between stages. Every status change is recorded in a timeline the agent can reason about.</p>
+  </div>
+  <div class="page-head__actions">
+    <button class="btn btn--secondary" type="button" id="tracker-refresh">{{ icon('refresh', 16) }} Refresh</button>
+    <button class="btn btn--primary" type="button" id="add-application">{{ icon('plus', 16) }} Add application</button>
+  </div>
+</div>
+
+<section class="stats-grid" aria-label="Application stats">
+  {{ stat_card('app-stat-total', 'Tracked', '—', 'Every application', 'kanban', 'accent') }}
+  {{ stat_card('app-stat-active', 'Active', '—', 'Applied through offer', 'zap', 'cyan') }}
+  {{ stat_card('app-stat-interviews', 'Interviews', '—', 'Conversations booked', 'calendar', 'amber') }}
+  {{ stat_card('app-stat-rate', 'Response rate', '—', 'Screening or further', 'chart', 'green') }}
+</section>
+
+<div class="tracker-toolbar">
+  <div class="tabs" role="tablist" aria-label="Tracker view">
+    <button class="tab is-active" type="button" data-view="board" role="tab" aria-selected="true">Board</button>
+    <button class="tab" type="button" data-view="table" role="tab" aria-selected="false">Table</button>
+  </div>
+  <select class="select" id="tracker-filter" aria-label="Filter by status" style="width:auto;min-width:150px;height:34px">
+    <option value="">All stages</option>
+    <option value="saved">Saved</option>
+    <option value="applied">Applied</option>
+    <option value="screening">Screening</option>
+    <option value="interview">Interview</option>
+    <option value="offer">Offer</option>
+    <option value="rejected">Rejected</option>
+    <option value="withdrawn">Withdrawn</option>
+  </select>
+  <span class="tracker-toolbar__spacer"></span>
+  <span class="tiny faint" id="tracker-updated"></span>
+</div>
+
+<div class="kanban" id="kanban" aria-label="Application board">
+  <div class="kanban-column"><div class="kanban-column__head"><span class="kanban-column__dot"></span><h3>Loading…</h3></div><div class="kanban-column__body"><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div></div></div>
+  <div class="kanban-column"><div class="kanban-column__head"><span class="kanban-column__dot"></span><h3>Loading…</h3></div><div class="kanban-column__body"><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div></div></div>
+  <div class="kanban-column"><div class="kanban-column__head"><span class="kanban-column__dot"></span><h3>Loading…</h3></div><div class="kanban-column__body"><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line"></div></div></div>
+</div>
+
+<section class="card hidden" id="table-view">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Role</th><th>Company</th><th>Status</th><th>Updated</th><th>Follow-up</th><th></th></tr>
+      </thead>
+      <tbody id="applications-table"></tbody>
+    </table>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/tracker.js') }}"></script>
+{% endblock %}

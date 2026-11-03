@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% from "components.html" import icon %}
+{% block body_class %}setup-page{% endblock %}
+{% block content %}
+
+<div class="setup-shell">
+  <section class="setup-intro">
+    <a class="setup-brand" href="{{ url_for('dashboard') }}">
+      <span class="setup-brand__mark">{{ icon('sparkles', 19) }}</span>
+      <span><strong>JobPilot</strong><small>AI job-search agent</small></span>
+    </a>
+
+    <span class="eyebrow">First run</span>
+    <h1>Set up your job search</h1>
+    <p class="setup-lede">
+      JobPilot only claims what it can verify. Start with your real profile, then the agent can
+      search, score and tailor applications without inventing experience.
+    </p>
+
+    <ol class="setup-steps">
+      <li class="setup-step is-current">
+        <span class="setup-step__num">1</span>
+        <span><strong>Add your profile</strong><small>Basics, targets and skills.</small></span>
+      </li>
+      <li class="setup-step">
+        <span class="setup-step__num">2</span>
+        <span><strong>Search live roles</strong><small>Rank every job against your evidence.</small></span>
+      </li>
+      <li class="setup-step">
+        <span class="setup-step__num">3</span>
+        <span><strong>Tailor and track</strong><small>Review verified drafts before anything leaves your machine.</small></span>
+      </li>
+    </ol>
+
+    <div class="setup-assurance">
+      {{ icon('shield', 17) }}
+      <p><strong>Local by default.</strong> Your profile and applications stay in the local SQLite database. External actions wait for approval.</p>
+    </div>
+  </section>
+
+  <section class="card setup-panel">
+    <div class="setup-panel__head">
+      <div>
+        <span class="eyebrow">Step 1 of 3</span>
+        <h2>Your starting point</h2>
+        <p>Use an existing CV to prefill the fields, or enter the essentials yourself.</p>
+      </div>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('dashboard') }}?skip=1">Explore first {{ icon('arrow-right', 14) }}</a>
+    </div>
+
+    <div class="setup-tabs" role="tablist" aria-label="Profile setup method">
+      <button class="setup-tab is-active" type="button" role="tab" aria-selected="true" data-setup-tab="manual">Build manually</button>
+      <button class="setup-tab" type="button" role="tab" aria-selected="false" data-setup-tab="cv">Paste an existing CV</button>
+      <button class="setup-tab" type="button" role="tab" aria-selected="false" data-setup-tab="upload">Upload a resume file</button>
+    </div>
+
+    <form class="setup-form" id="setup-form" autocomplete="off">
+      <div class="form-grid">
+        <div class="field">
+          <label for="setup-name">Full name</label>
+          <input class="input" id="setup-name" name="full_name" type="text" placeholder="Your full name" required>
+        </div>
+        <div class="field">
+          <label for="setup-headline">Headline</label>
+          <input class="input" id="setup-headline" name="headline" type="text" placeholder="AI Engineer · Python, LLMs">
+        </div>
+        <div class="field">
+          <label for="setup-email">Email</label>
+          <input class="input" id="setup-email" name="email" type="email" placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label for="setup-location">Location</label>
+          <input class="input" id="setup-location" name="location" type="text" placeholder="City, country">
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="setup-targets">Target roles</label>
+          <input class="input" id="setup-targets" name="target_roles" type="text" placeholder="AI Engineer, ML Engineer">
+          <span class="field-hint">Comma separated. Drives role matching and search suggestions.</span>
+        </div>
+        <div class="field">
+          <label for="setup-skills">Core skills</label>
+          <input class="input" id="setup-skills" name="skills" type="text" placeholder="Python, SQL, FastAPI, LLMs">
+          <span class="field-hint">Comma separated. Add only skills you can defend in an interview.</span>
+        </div>
+        <div class="field">
+          <label for="setup-remote">Work preference</label>
+          <select class="select" id="setup-remote" name="remote_preference">
+            <option value="any">Any</option>
+            <option value="remote">Remote</option>
+            <option value="hybrid">Hybrid</option>
+            <option value="onsite">On-site</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="setup-summary">Summary</label>
+        <textarea class="textarea" id="setup-summary" name="summary" rows="4" placeholder="Two or three sentences about what you build and the impact you have had."></textarea>
+      </div>
+
+      <div class="setup-actions">
+        <span class="field-hint">Experience and education can be added on the Profile page.</span>
+        <button class="btn btn--primary" type="submit" id="setup-save">Save and open dashboard {{ icon('arrow-right', 15) }}</button>
+      </div>
+    </form>
+
+    <div class="setup-cv" id="setup-cv" hidden>
+      <div class="field">
+        <label for="cv-text">CV text</label>
+        <textarea class="textarea" id="cv-text" placeholder="Paste your CV text here…&#10;&#10;Name&#10;Headline&#10;email · phone · location&#10;&#10;EXPERIENCE&#10;AI Engineer | Company | 2024 - present&#10;- Built …"></textarea>
+        <span class="field-hint">The parser extracts only facts that are literally present. Review the fields before saving.</span>
+      </div>
+      <div class="setup-actions">
+        <span class="field-hint">Parsing fills the form. Nothing is invented.</span>
+        <button class="btn btn--secondary" type="button" id="setup-parse">{{ icon('wand', 15) }} Parse CV</button>
+      </div>
+    </div>
+
+    <div class="setup-cv" id="setup-upload" hidden>
+      <div class="resume-uploader">
+        <label class="resume-drop" for="resume-file">
+          {{ icon('file-text', 20) }}
+          <strong>Choose a PDF, DOCX, TXT or Markdown file</strong>
+          <span class="field-hint">The file is stored privately for your account. Text-based files work best; scanned images need OCR, which is not available.</span>
+          <input class="resume-file-input" id="resume-file" type="file" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown">
+        </label>
+        <button class="btn btn--primary" type="button" id="resume-upload">{{ icon('wand', 15) }} Extract and review</button>
+      </div>
+      <p class="field-hint" id="resume-status">Nothing uploaded yet.</p>
+      <div class="resume-review" id="resume-review" hidden></div>
+      <div class="resume-list" id="resume-list"></div>
+    </div>
+  </section>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/setup.js') }}"></script>
+<script src="{{ url_for('static', filename='js/resume.js') }}"></script>
+{% endblock %}

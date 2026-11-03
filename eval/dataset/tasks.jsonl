@@ -1,0 +1,16 @@
+{"id": "task-01", "goal": "Find AI Engineer jobs in Islamabad or remote", "expected_tools": ["search_jobs"], "expected_intents": ["search"]}
+{"id": "task-02", "goal": "Search for machine learning roles, remote only", "expected_tools": ["search_jobs"], "expected_intents": ["search"]}
+{"id": "task-03", "goal": "Tailor my CV for the top match", "expected_tools": ["tailor_cv"], "expected_intents": ["tailor"]}
+{"id": "task-04", "goal": "Draft a cover letter for the top match", "expected_tools": ["draft_cover_letter"], "expected_intents": ["cover"]}
+{"id": "task-05", "goal": "Mark as applied the top match", "expected_tools": ["add_application"], "expected_intents": ["apply"]}
+{"id": "task-06", "goal": "Submit my application for the top match", "expected_tools": ["request_submission"], "expected_intents": ["apply", "submit"]}
+{"id": "task-07", "goal": "Remember that I only want remote roles", "expected_tools": ["remember"], "expected_intents": ["remember"]}
+{"id": "task-08", "goal": "What do you remember about my preferences?", "expected_tools": ["list_memories"], "expected_intents": ["memories"]}
+{"id": "task-09", "goal": "Show my applications and follow-ups", "expected_tools": ["list_applications", "list_followups"], "expected_intents": ["tracker"]}
+{"id": "task-10", "goal": "Check my job sources", "expected_tools": ["check_sources"], "expected_intents": ["sources"]}
+{"id": "task-11", "goal": "Forget my remote preference", "expected_tools": ["forget"], "expected_intents": ["forget"]}
+{"id": "task-12", "goal": "Find 5 Python jobs remotely", "expected_tools": ["search_jobs"], "expected_intents": ["search"]}
+{"id": "task-13", "goal": "Tailor my CV and draft a cover letter for the top match", "expected_tools": ["tailor_cv", "draft_cover_letter"], "expected_intents": ["tailor", "cover"]}
+{"id": "task-14", "goal": "Find AI engineer jobs and tailor my CV for the top match", "expected_tools": ["search_jobs", "tailor_cv"], "expected_intents": ["search", "tailor"]}
+{"id": "task-15", "goal": "Forget memory mem_0123456789ab", "expected_tools": ["forget"], "expected_intents": ["forget"]}
+{"id": "task-16", "goal": "List memories about my job search", "expected_tools": ["list_memories"], "expected_intents": ["memories"]}
